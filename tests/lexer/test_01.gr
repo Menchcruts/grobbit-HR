@@ -12,5 +12,10 @@ func main() {
     // This is an unterminated string.
     var s2 string = "he
     x *= 2 * x
-}
 
+    var v int = 10var10
+
+    0xbadfacez
+    0b1012
+    0o1039
+}

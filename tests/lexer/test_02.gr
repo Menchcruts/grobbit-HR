@@ -1,0 +1,13 @@
+package main;
+
+var x int = 10;
+var y float = 2.5;
+var s string = "hello";
+
+func main() {
+	x = x + 1;
+	y = y * 2.0;
+	return;
+};
+
+//basic package

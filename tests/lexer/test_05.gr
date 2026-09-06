@@ -1,0 +1,12 @@
+package main;
+
+var x int = 10;
+
+// Unterminated string
+var s string = "hello
+
+var y int = 20;
+
+/* unterminated block comment
+
+//errors

@@ -90,8 +90,8 @@ func runOwnLexer(filename, outFilename string) {
 	}
 }
 
-func DoTestLexer() {
-	filename := "tests/lexer/test_01.gr" //os.Args[1]
+func DoTestLexer(filename string) {
+	// filename := "tests/lexer/test_01.gr" //os.Args[1]
 	runBuiltInLexer(filename, "out/output_b.txt")
 	runOwnLexer(filename, "out/output_o.txt")
 }

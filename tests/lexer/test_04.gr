@@ -1,0 +1,16 @@
+package main;
+
+var a int = 0;
+var b int = 123;
+var c float = 10.2;
+var d float = 0.10;
+var e float = 1e10;
+var f float = 2.5E-3;
+
+var s1 string = "hello";
+var s2 string = "hello\nworld";
+var s3 string = "hello\tworld";
+var s4 string = "quote: \"hello\"";
+var s5 string = "slash: \\";
+
+// String numbers

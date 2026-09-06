@@ -1,0 +1,21 @@
+package main;
+
+// this is a single line comment
+var x int = 10;
+
+/*
+this is a
+multi-line comment
+*/
+var y int = 20;
+
+func main() {
+	// comment in a function Wow look at me
+	x = x + y;
+
+	/* i am a block comment yippy
+     */
+	return;
+};
+
+// comment package
