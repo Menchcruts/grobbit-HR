@@ -1,0 +1,27 @@
+package main;
+
+// Operator coverage: every operator listed in the Grobbit grammar
+// (unary_op, add_op, mul_op, rel_op, binary_op) plus short var decl.
+func main() {
+	var a int = 5;
+	var b int = 2;
+
+	x := a + b;
+	x = a - b;
+	x = a * b;
+	x = a / b;
+	x = a % b;
+
+	x = -a;
+	x = +a;
+
+	ok := a == b;
+	ok = a != b;
+	ok = a < b;
+	ok = a <= b;
+	ok = a > b;
+	ok = a >= b;
+
+	ok = ok && !ok;
+	ok = ok || !ok;
+}

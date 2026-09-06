@@ -145,13 +145,19 @@ func (lexer *Lexer) processBlockComment() bool {
 	n := 0
 	for !lexer.eoi && lexer.ch == '/' && lexer.peekRuneIs('*') {
 		n += 1
+		start := lexer.pos
+		closed := false
 		for !lexer.eoi {
 			if lexer.ch == '*' && lexer.peekRuneIs('/') {
 				lexer.nextRune() // *
 				lexer.nextRune() // /
+				closed = true
 				break
 			}
 			lexer.nextRune()
+		}
+		if !closed {
+			lexer.errorHandler(start, "comment not terminated")
 		}
 	}
 	return n > 0
@@ -195,6 +201,7 @@ func (lexer *Lexer) matchOperator() bool {
 	case '|':
 		lexer.setToken(
 			TtOpBitOr,
+			pair{'|', TtOpOr, nil},
 			pair{'=', TtOpBitOrAssign, nil},
 		)
 		return true
@@ -204,17 +211,17 @@ func (lexer *Lexer) matchOperator() bool {
 			pair{'<', TtOpBitShl, []pair{
 				{'=', TtOpBitShlAssign, nil},
 			}},
-			pair{'=', TtOpGe, nil},
+			pair{'=', TtOpLe, nil},
 			pair{'-', TtOpArrow, nil},
 		)
 		return true
 	case '>':
 		lexer.setToken(
-			TtOpLt,
+			TtOpGt,
 			pair{'>', TtOpBitShr, []pair{
 				{'=', TtOpBitShrAssign, nil},
 			}},
-			pair{'=', TtOpLe, nil},
+			pair{'=', TtOpGe, nil},
 		)
 		return true
 	case '=':
@@ -262,7 +269,10 @@ func (lexer *Lexer) matchOperator() bool {
 		lexer.setToken(TtRBracket)
 		return true
 	case ':':
-		lexer.setToken(TtColon)
+		lexer.setToken(
+			TtColon,
+			pair{'=', TtOpDefine, nil},
+		)
 		return true
 	case ';':
 		lexer.setToken(TtSemicolon)
@@ -307,7 +317,14 @@ func (lexer *Lexer) buildStringLiteral() Token {
 	sb.WriteRune(lexer.ch)
 
 	lexer.nextRune()
-	for !lexer.eoi && (!(lexer.ch == '"' || lexer.ch == '\n')) {
+	for !lexer.eoi && lexer.ch != '"' && lexer.ch != '\n' {
+		if lexer.ch == '\\' {
+			sb.WriteRune(lexer.ch)
+			lexer.nextRune()
+			if lexer.eoi || lexer.ch == '\n' {
+				break
+			}
+		}
 		sb.WriteRune(lexer.ch)
 		lexer.nextRune()
 	}
@@ -366,6 +383,20 @@ func (lexer *Lexer) buildDecimalLiteral() Token {
 	if lexer.ch == '.' {
 		sb.WriteRune(lexer.ch)
 		lexer.nextRune()
+		for unicode.IsDigit(lexer.ch) {
+			sb.WriteRune(lexer.ch)
+			lexer.nextRune()
+		}
+		tt = TtFloat
+	}
+
+	if lexer.ch == 'e' || lexer.ch == 'E' {
+		sb.WriteRune(lexer.ch)
+		lexer.nextRune()
+		if lexer.ch == '+' || lexer.ch == '-' {
+			sb.WriteRune(lexer.ch)
+			lexer.nextRune()
+		}
 		for unicode.IsDigit(lexer.ch) {
 			sb.WriteRune(lexer.ch)
 			lexer.nextRune()

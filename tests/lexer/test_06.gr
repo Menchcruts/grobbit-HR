@@ -1,0 +1,14 @@
+// Keyword coverage: Grobbit must recognise every Go keyword as a keyword
+// (not an identifier), even the ones Grobbit itself never uses.
+break case chan const continue default defer else fallthrough for
+func go goto if import interface map package range return select
+struct switch type var
+
+// true/false follow the Go spec: ordinary predefined identifiers, not
+// reserved keywords, so they must lex as IDENT here.
+var flag bool = true;
+var other bool = false;
+
+// A keyword must still be recognised as a keyword when butted against
+// punctuation, not just when surrounded by whitespace.
+if(true){break;}else{continue;}
