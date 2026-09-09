@@ -1,0 +1,38 @@
+package test;
+
+import "fmt";
+
+import (
+   "fmt";
+   f "fmt";
+);
+
+var x int = 10;
+var y, z int = 10, 20;
+
+func foo() {
+
+    var local int = 1
+
+    x := 30
+    x = 40
+    y, z = 1.0, 2.0
+    v, w := 1.0, 2.0
+
+    for {
+        return
+    }
+
+    for 0 || 1 {
+        continue
+    }
+
+    for i := 1 ; i ; 2 {
+
+    }
+
+    return 1;
+};
+
+var x1 int;
+var y1, z1 int;
