@@ -255,7 +255,7 @@ func (parser *Parser) BlockStatement() *BlockStmtNode {
 	for parser.token.Type != TtRBrace {
 		stmt := parser.Statement()
 		stmts = append(stmts, stmt)
-		parser.matchIf(TtSemicolon)
+		parser.match(TtSemicolon)
 	}
 	parser.match(TtRBrace)
 	return &BlockStmtNode{Tok: token, List: stmts}
