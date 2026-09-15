@@ -39,6 +39,11 @@ func (parser *Parser) matchIf(tt TokenType) bool {
 	return false
 }
 
+func (parser *Parser) isSimpleStmt() bool {
+
+	return false
+}
+
 ///////////////////////////////////// Exported methods ///////////////////////////////////////
 
 func (parser *Parser) ParseSrc(src []byte, handler ErrorHandler) string {
@@ -377,13 +382,66 @@ func (parser *Parser) BasicLiteral() ExprNode {
 ////////////////// You implement the methods below (add methods as needed) ////////////////////
 
 func (parser *Parser) ConstDecl() DeclNode {
-	// TO DO ...
-	return nil
+	/*
+		const const1 int = 42;
+		const const2 string = "42";
+
+		const const3, const4 float = 3.14, 2.71;
+
+		// Or
+
+		const (
+			const1 int = 42;
+			const2 string = "42";
+		);
+
+		const (
+			const3, const4 float = 3.14, 2.71;
+			const5, const6 int = 1, 2;
+		);
+	*/
+	node := &GenDeclNode{}
+	parser.match(TtKwConst)
+	if parser.matchIf(TtLParen) {
+		node.Specs = parser.ConstSpecs()
+		parser.match(TtRParen)
+	} else {
+		node.Specs = []SpecNode{
+			parser.ConstSpec(),
+		}
+	}
+
+	return node
+}
+
+func (parser *Parser) ConstSpecs() []SpecNode {
+	/*
+		const (
+			[const1 int = 42;]
+			[const2 string = "42";]
+		);
+	*/
+	specs := []SpecNode{}
+	for parser.token.Type != TtRParen {
+		specs = append(specs, parser.ConstSpec())
+		parser.match(TtSemicolon)
+	}
+	return specs
 }
 
 func (parser *Parser) ConstSpec() *ValueSpecNode {
-	// TO DO ...
-	return nil
+	/*
+		const [const1 int = 42];
+		const [const2 string = "42"];
+	*/
+	node := &ValueSpecNode{Token: parser.token}
+
+	node.Names = parser.Identifiers()
+	node.Type = parser.Identifier()
+	parser.match(TtOpAssign)
+	node.Values = parser.BasicLiterals()
+
+	return node
 }
 
 func (parser *Parser) BreakStatement() StmtNode {
@@ -411,3 +469,12 @@ func (parser *Parser) ExprAnd() ExprNode {
 
 // Add functions as needed to parse expressions with the precedence (and associativity) of Grobbit operators correct
 // (same as in Go). Note that you need to rewrite the grammar for reflecting the correct operator precedence.
+
+func (parser *Parser) BasicLiterals() []ExprNode {
+	var literals []ExprNode
+	literals = append(literals, parser.BasicLiteral())
+	for parser.matchIf(TtComma) {
+		literals = append(literals, parser.BasicLiteral())
+	}
+	return literals
+}
