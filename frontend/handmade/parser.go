@@ -445,8 +445,9 @@ func (parser *Parser) ConstSpec() *ValueSpecNode {
 }
 
 func (parser *Parser) BreakStatement() StmtNode {
-	// TO DO ...
-	return nil
+	token := parser.token
+	parser.match(TtKwBreak)
+	return &BranchStmtNode{Tok: token}
 }
 
 func (parser *Parser) IfStatement() StmtNode {
