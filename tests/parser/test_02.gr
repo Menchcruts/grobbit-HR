@@ -1,0 +1,13 @@
+package test;
+
+const test1 int = 42;
+const (
+    test2 int = 42;
+    test3 string = "42";
+);
+
+const test4, test5 float = 3.14, 2.71;
+const (
+    test6, test7 int = 1, 2;
+    test8, test9 int = 3, 4;
+);

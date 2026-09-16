@@ -39,11 +39,6 @@ func (parser *Parser) matchIf(tt TokenType) bool {
 	return false
 }
 
-func (parser *Parser) isSimpleStmt() bool {
-
-	return false
-}
-
 ///////////////////////////////////// Exported methods ///////////////////////////////////////
 
 func (parser *Parser) ParseSrc(src []byte, handler ErrorHandler) string {
@@ -451,8 +446,38 @@ func (parser *Parser) BreakStatement() StmtNode {
 }
 
 func (parser *Parser) IfStatement() StmtNode {
-	// TO DO ...
-	return nil
+	parser.match(TtKwIf)
+
+	var init, condStmt, elseStmt StmtNode = nil, nil, nil
+
+	firstStmt := parser.SimpleStatement()
+
+	if parser.matchIf(TtSemicolon) { // We have a simple statement
+		init = firstStmt
+		condStmt = parser.SimpleStatement()
+	} else { // Only a condition
+		condStmt = firstStmt
+	}
+
+	condExpr, isExpr := condStmt.(*ExprStmtNode)
+	if !isExpr {
+		msg := fmt.Sprintf("Condition needs to be an expression at line %d.", parser.token.Pos.Line)
+		parser.matchError(msg)
+		// terminates
+	}
+	cond := condExpr.Expr
+
+	body := parser.BlockStatement()
+
+	if parser.matchIf(TtKwElse) {
+		if parser.token.Type == TtKwIf { // IfStatement will match it
+			elseStmt = parser.IfStatement()
+		} else {
+			elseStmt = parser.BlockStatement()
+		}
+	}
+
+	return &IfStmtNode{Init: init, Cond: cond, Body: body, Else: elseStmt}
 }
 
 func (parser *Parser) ExprAnd() ExprNode {
