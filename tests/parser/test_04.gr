@@ -1,0 +1,18 @@
+package test;
+
+import "fmt";
+
+func a(b int) int {
+    return b + 1;
+};
+
+func b(c int) int {
+    return c * 2;
+};
+
+func main() {
+    result := a(42);
+    result = a(b(42));
+
+    fmt.Println(result);
+};

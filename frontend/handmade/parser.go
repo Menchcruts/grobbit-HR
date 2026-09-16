@@ -39,6 +39,30 @@ func (parser *Parser) matchIf(tt TokenType) bool {
 	return false
 }
 
+func (parser *Parser) matchAnyOf(tts ...TokenType) bool {
+	if parser.oneOf(parser.token.Type, tts...) {
+		parser.match(parser.token.Type) // We know the token is one of the expected types
+		return true
+	}
+	return false
+}
+
+// collapseSelectorExpr collapses a possbile selector expression
+// into the last IdentifierNode of the selector.
+// This is because we don't define a SelectorExpressionNode like
+// the real Go parser does.
+func (parser *Parser) collapseSelectorExpr() *IdentifierNode {
+	ident := parser.Identifier()
+	for parser.matchIf(TtPeriod) {
+		ident = parser.Identifier()
+	}
+	return ident
+}
+
+func (parser *Parser) currentIsLiteral() bool {
+	return parser.oneOf(parser.token.Type, TtInt, TtFloat, TtString)
+}
+
 ///////////////////////////////////// Exported methods ///////////////////////////////////////
 
 func (parser *Parser) ParseSrc(src []byte, handler ErrorHandler) string {
@@ -481,14 +505,45 @@ func (parser *Parser) IfStatement() StmtNode {
 }
 
 func (parser *Parser) ExprAnd() ExprNode {
-	// TO DO ...
+	expr := parser.ExprCompare()
+	token := parser.token
+	for parser.matchIf(TtOpAnd) {
+		rhs := parser.ExprCompare()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+	return expr
+}
 
-	// This code is a place-holder, replace with your implementation.
-	var expr ExprNode = nil
-	if parser.token.Type == TtIdentifier {
-		expr = parser.Identifier()
-	} else {
-		expr = parser.BasicLiteral()
+func (parser *Parser) ExprCompare() ExprNode {
+	expr := parser.ExprAdd()
+	token := parser.token
+	for parser.matchAnyOf(TtOpEq, TtOpNe, TtOpLt, TtOpLe, TtOpGt, TtOpGe) {
+		rhs := parser.ExprAdd()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+	return expr
+}
+
+func (parser *Parser) ExprAdd() ExprNode {
+	expr := parser.ExprMul()
+	token := parser.token
+	for parser.matchAnyOf(TtOpAdd, TtOpSub, TtOpBitOr, TtOpBitXor) {
+		rhs := parser.ExprMul()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+	return expr
+}
+
+func (parser *Parser) ExprMul() ExprNode {
+	expr := parser.UnaryExpr()
+	token := parser.token
+	for parser.matchAnyOf(TtOpMul, TtOpDiv, TtOpMod, TtOpBitShl, TtOpBitShr, TtOpBitAnd, TtOpBitAndNot) {
+		rhs := parser.UnaryExpr()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
 	}
 	return expr
 }
@@ -503,4 +558,39 @@ func (parser *Parser) BasicLiterals() []ExprNode {
 		literals = append(literals, parser.BasicLiteral())
 	}
 	return literals
+}
+
+func (parser *Parser) PrimaryExpr() ExprNode {
+	if parser.currentIsLiteral() { // Literal
+		return parser.BasicLiteral()
+	} else if parser.token.Type == TtIdentifier {
+		ident := parser.collapseSelectorExpr()
+		if parser.matchIf(TtLParen) { // Call expression
+			args := parser.Expressions()
+			parser.match(TtRParen)
+			return &CallExprNode{Fun: ident, Args: args}
+		} else { // Just an identifier
+			return ident
+		}
+	} else if parser.matchIf(TtLParen) { // Parenthesized expression
+		expr := parser.Expression()
+		parser.match(TtRParen)
+		return expr
+	} else {
+		parser.matchError(fmt.Sprintf("Expected an expression at line %d.", parser.token.Pos.Line))
+		// terminates
+	}
+	// We should never reach this point
+	return nil
+}
+
+func (parser *Parser) UnaryExpr() ExprNode {
+	if parser.oneOf(parser.token.Type, TtOpAdd, TtOpSub, TtOpNot) {
+		op := parser.token
+		parser.match(op.Type)
+		expr := parser.UnaryExpr()
+		return &UnaryExprNode{Tok: op, Expr: expr}
+	} else {
+		return parser.PrimaryExpr()
+	}
 }

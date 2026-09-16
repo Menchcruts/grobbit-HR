@@ -1,0 +1,13 @@
+package test;
+
+func main() {
+    if y := 1; y < 10 {
+        foo(y);
+    };
+
+    if x := 1; x < 10 {
+        if x > 5 {
+            foo(x);
+        };
+    };
+};

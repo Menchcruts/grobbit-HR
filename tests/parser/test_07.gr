@@ -1,0 +1,11 @@
+package test;
+
+func main() {
+    for i := 0; i < 10; i = i + 1 {
+        foo(i);
+    };
+
+    for j > 0 {
+        bar(j);
+    };
+};
